@@ -160,22 +160,10 @@ There are two extra credit opportunities for this lab, worth one point each.
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt
+import zipfile
+import glob
 
-#import zipfile
-#import glob
 
-DATA_FILE = "tweets_01-08-2021.json"
-
-def parse_tweet_time(tweet: dict):
-    date_str = tweet.get("date")
-    if not date_str:
-        return None
-    return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-
-with open(DATA_FILE, "r", encoding="utf-8") as f:
-    tweets = json.load(f)
-
-print("len(tweets)=", len(tweets))
 
 def get_tweet_text(tweet: dict) -> str:
     if "text" in tweet:
@@ -185,65 +173,73 @@ def get_tweet_text(tweet: dict) -> str:
     return ""
 
 
-# zip_paths = sorted(glob.glob('condensed_*.zip'))
+def parse_tweet_time(tweet: dict):
+    date_str = tweet.get("created_at")
+    if not date_str:
+        return None
+    return datetime.strptime(date_str, "%a %b %d %H:%M:%S +0000 %Y")
 
-  #  tweets = []
-  #  for zip_path in zip_paths: 
-  #      with zipfile.ZipFile(zip_path, "r") as z:
-   #         for file_name in z.namelist():
-    #            with z.open(file_name) as f:
-   #                for line in f:
-  #                      text = line.decode("utf-8").strip()
-    #                    tweets += json.loads(text)
+# Load all tweets from zip files
+zip_paths = sorted(glob.glob('condensed_*.json.zip'))
 
-   # print("len(tweets)=", len(tweets))
+tweets = []
+for zip_path in zip_paths:
+    print (zip_path)
+    print (len(tweets))
+    with zipfile.ZipFile(zip_path, "r") as z:
+        for file_name in z.namelist():
+            with z.open(file_name) as f:
+                for line in f:
+                    text = line.decode("utf-8").strip()
+                    tweets += json.loads(text)
+
+print("len(tweets)=", len(tweets))  
 
 
-word_counts = { # keys are words, values are counts
-    'trump': 0, 
+# Word counts
+word_counts = {
+    'trump': 0,
     'obama': 0,
     'the': 0,
-    'me':0,
-    'america':0
-
+    'me': 0,
+    'america': 0
 }
 
-for tweet in tweets: 
-   for word in word_counts:
-       if word in tweet['text'].lower():
-           word_counts[word] += 1
+for tweet in tweets:
+    for word in word_counts:
+        if word in get_tweet_text(tweet).lower():
+            word_counts[word] += 1
 
 print('word_counts=', word_counts)
 
-total = len(tweets)
 
-percentages = {
-    word: (count / total) * 100
-    for word, count in word_counts.items()
-}
+# Percentages + table
+total = len(tweets)
+percentages = {word: (count / total) * 100 for word, count in word_counts.items()}
 
 print("| phrase            | percent of tweets |")
 print("| ----------------- | ----------------- |")
-
 for word in sorted(percentages):
     percent = percentages[word]
     print(f"| {word:>17} | {percent:06.2f}             |")
 
 
+# Bar chart of word percentages
 words = list(percentages.keys())
 values = list(percentages.values())
 
+plt.figure()
 plt.bar(words, values)
-
 plt.xlabel("Phrase")
 plt.ylabel("Percent of Tweets")
 plt.title("Percent of Tweets Containing Each Phrase")
-
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig("word_percentages.png")
 plt.show()
 
+
+# Tweets by hour of day
 hour_counts = [0] * 24
 parsed = 0
 
@@ -256,7 +252,7 @@ for tweet in tweets:
 
 print("timestamps parsed =", parsed, "out of", len(tweets))
 
-plt.figure()  
+plt.figure()
 plt.bar(range(24), hour_counts)
 plt.xlabel("Hour of day (0–23)")
 plt.ylabel("Number of tweets")

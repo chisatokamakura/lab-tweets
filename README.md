@@ -5,11 +5,11 @@
 
 | phrase            | percent of tweets |
 | ----------------- | ----------------- |
-|           america | 08.85             |
-|                me | 41.88             |
-|             obama | 05.51             |
-|               the | 56.86             |
-|             trump | 32.45             |
+|           america | 008.54             |
+|                me | 039.73             |
+|             obama | 007.47             |
+|               the | 053.89             |
+|             trump | 038.35             |
 
 The table above shows the percentage of tweets containing these selected keywords across the full dataset of Trump's tweets, using the latest version of his data.
 
